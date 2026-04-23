@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>OS Page Replacement | FIFO vs LRU vs OPTIMAL | Comparative Analysis</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="dashboard">
+    <div class="hero">
+        <h1>📊 Algorithm Battle: FIFO vs LRU vs OPTIMAL</h1>
+        <div class="subhead">Comparative page replacement simulation | Fault analysis + winner detection</div>
+    </div>
+
+    <div class="control-bar">
+        <div class="ctrl-group">
+            <label>📋 Reference String</label>
+            <input type="text" id="refInput" value="7,0,1,2,0,3,0,4,2,3,0,3,2,1,2,0,1,7,0,1">
+        </div>
+        <div class="ctrl-group">
+            <label>🗄️ Frame Count (3-8)</label>
+            <input type="number" id="frameInput" min="3" max="8" value="3">
+        </div>
+        <div class="btn-group">
+            <button id="simulateBtn" class="btn btn-primary">▶ COMPARE ALL</button>
+            <button id="resetBtn" class="btn">⟳ RESET</button>
+        </div>
+    </div>
+
+    <!-- 3 algorithm comparison cards -->
+    <div class="comparison-grid" id="comparisonCards">
+        <div class="algo-card fifo-border">
+            <div class="algo-name fifo-color">🔷 FIFO</div>
+            <div class="algo-stats"><span>Page Faults</span><span id="fifoFaults" class="fault-value">—</span></div>
+            <div class="algo-stats"><span>Hit Ratio</span><span id="fifoHit">—</span></div>
+            <div id="fifoWinner"></div>
+        </div>
+        <div class="algo-card lru-border">
+            <div class="algo-name lru-color">🟣 LRU</div>
+            <div class="algo-stats"><span>Page Faults</span><span id="lruFaults" class="fault-value">—</span></div>
+            <div class="algo-stats"><span>Hit Ratio</span><span id="lruHit">—</span></div>
+            <div id="lruWinner"></div>
+        </div>
+        <div class="algo-card optimal-border">
+            <div class="algo-name optimal-color">🟢 OPTIMAL</div>
+            <div class="algo-stats"><span>Page Faults</span><span id="optFaults" class="fault-value">—</span></div>
+            <div class="algo-stats"><span>Hit Ratio</span><span id="optHit">—</span></div>
+            <div id="optWinner"></div>
+        </div>
+    </div>
+
+    <!-- Graph: cumulative faults comparison -->
+    <div class="graph-section">
+        <div class="section-title">📈 Cumulative Faults Comparison (Step-by-Step)</div>
+        <div class="graph-container">
+            <canvas id="comparisonGraph" width="800" height="240"></canvas>
+        </div>
+    </div>
+
+    <div class="ref-section">
+        <div class="section-title">🔖 Reference Sequence</div>
+        <div id="refSequenceContainer" class="ref-badge-container"></div>
+    </div>
+    
+    <!-- Show detailed timeline for selected algorithm -->
+    <div class="timeline-container">
+        <div class="section-title">📊 Detailed Frame Timeline (<span id="activeAlgoLabel">FIFO</span>) 
+            <span style="font-size:0.7rem; margin-left:10px;">⚡ Click on cards to switch view</span>
+        </div>
+        <div id="frameMatrix" class="frames-matrix">
+            <div style="text-align:center;padding:1.5rem;">Run comparison to visualize</div>
+        </div>
+    </div>
+    <div class="log-area" id="logArea">
+        <div class="log-entry">💡 Press "COMPARE ALL" to simulate three algorithms simultaneously.</div>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
