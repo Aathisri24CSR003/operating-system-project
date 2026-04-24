@@ -3,88 +3,851 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>OS Page Replacement: FIFO vs LRU vs OPTIMAL | High Contrast</title>
-    <link rel="stylesheet" href="style.css">
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <title>OS Page Replacement | FIFO vs LRU vs OPTIMAL | High Visibility</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0f1c 0%, #030614 100%);
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            padding: 1.5rem;
+        }
+
+        /* Main Container */
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(10, 20, 40, 0.85);
+            backdrop-filter: blur(15px);
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .hero {
+            padding: 1.8rem 2rem;
+            background: linear-gradient(135deg, rgba(79, 70, 229, 0.3), rgba(168, 85, 247, 0.15));
+            border-bottom: 2px solid #facc15;
+        }
+
+        .hero h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffffff, #facc15, #a78bfa);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .hero .subtitle {
+            color: #c4b5fd;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .team-badge {
+            display: inline-block;
+            background: rgba(250, 204, 21, 0.2);
+            padding: 0.2rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.7rem;
+            margin-top: 0.5rem;
+            color: #facc15;
+            font-weight: bold;
+        }
+
+        /* Control Bar */
+        .control-bar {
+            padding: 1.5rem 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .ctrl-group {
+            flex: 1;
+            min-width: 180px;
+        }
+
+        .ctrl-group label {
+            display: block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #facc15;
+            margin-bottom: 0.5rem;
+        }
+
+        .ctrl-group input {
+            width: 100%;
+            background: #0f1625;
+            border: 1px solid #3e4a6b;
+            border-radius: 1rem;
+            padding: 0.75rem 1rem;
+            color: #ffffff;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .ctrl-group input:focus {
+            outline: none;
+            border-color: #facc15;
+            box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .btn {
+            padding: 0.75rem 1.8rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #facc15, #eab308);
+            color: #1a1a2e;
+            font-weight: 800;
+            box-shadow: 0 4px 15px rgba(250, 204, 21, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(250, 204, 21, 0.6);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        /* Algorithm Cards - HIGH VISIBILITY */
+        .algo-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            padding: 2rem;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .algo-card {
+            flex: 1;
+            min-width: 240px;
+            background: linear-gradient(135deg, rgba(15, 25, 50, 0.95), rgba(10, 15, 35, 0.95));
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.5);
+        }
+
+        .algo-card:hover {
+            transform: translateY(-6px);
+            border-color: #facc15;
+            box-shadow: 0 20px 40px -12px rgba(250, 204, 21, 0.3);
+        }
+
+        .algo-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .algo-name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .fifo-color { color: #60a5fa; text-shadow: 0 0 5px #3b82f6; }
+        .lru-color { color: #c084fc; text-shadow: 0 0 5px #a855f7; }
+        .optimal-color { color: #34d399; text-shadow: 0 0 5px #10b981; }
+
+        /* FAULT NUMBER - BIG AND BRIGHT */
+        .fault-value {
+            font-size: 3.5rem;
+            font-weight: 900;
+            font-family: monospace;
+            background: linear-gradient(135deg, #ff6b6b, #ff4757);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(255, 71, 87, 0.5);
+            letter-spacing: 2px;
+            display: inline-block;
+            padding: 0 0.5rem;
+        }
+
+        /* HIT RATIO - BRIGHT GREEN */
+        .hit-value {
+            font-size: 1.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+            padding: 0.3rem 1rem;
+            border-radius: 2rem;
+            margin-top: 0.5rem;
+            text-shadow: 0 0 8px rgba(46, 204, 113, 0.5);
+        }
+
+        /* FAULT RATE - BRIGHT ORANGE */
+        .rate-value {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #f97316;
+            display: inline-block;
+            padding: 0.2rem 0.8rem;
+            border-radius: 2rem;
+            background: rgba(249, 115, 22, 0.2);
+            margin-top: 0.3rem;
+        }
+
+        /* WINNER BADGE */
+        .winner-star {
+            margin-top: 0.8rem;
+            padding: 0.4rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #facc15, #eab308);
+            color: #1a1a2e;
+            display: inline-block;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.85; transform: scale(1.02); }
+        }
+
+        /* Stats Row Extra */
+        .stats-row {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.8rem;
+            justify-content: center;
+        }
+
+        /* Reference Section */
+        .ref-section {
+            padding: 0 2rem 1rem 2rem;
+        }
+
+        .section-title {
+            color: #facc15;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.8rem;
+            font-weight: 700;
+        }
+
+        .ref-badge-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 1rem;
+            border-radius: 1.2rem;
+        }
+
+        .ref-badge {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            border-radius: 1rem;
+            border: 2px solid #facc15;
+            color: #facc15;
+            transition: transform 0.2s;
+        }
+
+        .ref-badge:hover {
+            transform: scale(1.08);
+            background: #facc15;
+            color: #1a1a2e;
+        }
+
+        /* Timeline */
+        .timeline-area {
+            padding: 0.5rem 2rem 1.5rem 2rem;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .timeline-title {
+            font-weight: 800;
+            color: #facc15;
+            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.4rem 1.2rem;
+            border-radius: 2rem;
+        }
+
+        .timeline-hint {
+            font-size: 0.7rem;
+            color: #94a3b8;
+        }
+
+        .matrix-scroll {
+            background: rgba(0, 0, 0, 0.45);
+            border-radius: 1.2rem;
+            padding: 1rem;
+            overflow-x: auto;
+        }
+
+        .step-header {
+            display: flex;
+            min-width: max-content;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-cell {
+            flex: 0 0 80px;
+            text-align: center;
+            padding: 0.5rem 0.2rem;
+            background: rgba(79, 70, 229, 0.25);
+            border-radius: 0.8rem;
+            margin-right: 2px;
+        }
+
+        .step-num {
+            font-size: 0.65rem;
+            color: #a5b4fc;
+        }
+
+        .step-page {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #facc15;
+        }
+
+        .status-badge {
+            font-size: 0.55rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 2rem;
+            display: inline-block;
+        }
+
+        .status-fault {
+            background: #ef4444;
+            color: white;
+            font-weight: bold;
+        }
+
+        .status-hit {
+            background: #10b981;
+            color: white;
+            font-weight: bold;
+        }
+
+        .frame-row {
+            display: flex;
+            min-width: max-content;
+            margin-top: 0.3rem;
+        }
+
+        .frame-label {
+            flex: 0 0 80px;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+            color: #facc15;
+            border-radius: 0.6rem;
+            margin-right: 2px;
+        }
+
+        .frame-cell {
+            flex: 0 0 80px;
+            height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: 800;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 0.6rem;
+            margin-right: 2px;
+            color: #e2e8f0;
+        }
+
+        .fault-new {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+        }
+
+        .fault-replace {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: white;
+            animation: glowReplace 0.3s ease;
+            box-shadow: 0 0 12px rgba(249, 115, 22, 0.6);
+        }
+
+        @keyframes glowReplace {
+            0% { transform: scale(0.95); }
+            100% { transform: scale(1); }
+        }
+
+        /* Log Panel */
+        .log-container {
+            margin: 0 2rem 2rem 2rem;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 1rem;
+            padding: 1rem;
+            max-height: 160px;
+            overflow-y: auto;
+            border: 1px solid rgba(250, 204, 21, 0.3);
+        }
+
+        .log-line {
+            border-left: 3px solid #facc15;
+            padding: 0.4rem 0.8rem;
+            margin: 0.3rem 0;
+            color: #e2e8f0;
+            font-family: monospace;
+            font-size: 0.75rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+
+        .log-line strong {
+            color: #facc15;
+        }
+
+        ::-webkit-scrollbar {
+            height: 5px;
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #facc15;
+            border-radius: 10px;
+        }
+    </style>
 </head>
 <body>
 <div class="dashboard">
     <div class="hero">
-        <h1>📟 PAGE REPLACEMENT • FIFO • LRU • OPTIMAL</h1>
-        <div class="team-row">
-            <span>📌 24CSR003 | 24CSR051 | 24CSL362</span>
-            <span>⚡ High Visibility Mode</span>
-        </div>
+        <h1>📟 PAGE REPLACEMENT ALGORITHMS</h1>
+        <div class="subtitle">FIFO • LRU • OPTIMAL — Comparative Analysis with High Visibility Stats</div>
+        <div class="team-badge">🎓 24CSR003 | 24CSR051 | 24CSL362</div>
     </div>
 
     <div class="control-bar">
         <div class="ctrl-group">
             <label>🔖 REFERENCE STRING</label>
-            <input type="text" id="refInput" value="1,2,3,2,4,1,3,2,4,1">
+            <input type="text" id="refInput" value="7,0,1,2,0,3,0,4,2,3,0,3,2,1,2,0,1,7,0,1">
         </div>
         <div class="ctrl-group">
             <label>🗃️ FRAME COUNT (3-8)</label>
             <input type="number" id="frameInput" min="3" max="8" value="3" step="1">
         </div>
         <div class="btn-group">
-            <button id="runSimBtn" class="btn btn-primary">▶ RUN & COMPARE</button>
-            <button id="resetBtn" class="btn">⟳ RESET</button>
+            <button id="runBtn" class="btn btn-primary">▶ RUN SIMULATION</button>
+            <button id="resetBtn" class="btn btn-secondary">⟳ RESET</button>
         </div>
     </div>
 
-    <!-- THREE CARDS: faults + hit ratio EXTRA VISIBLE -->
-    <div class="stats-compare">
+    <!-- Algorithm Cards with HIGH VISIBILITY stats -->
+    <div class="algo-grid">
         <div class="algo-card" id="cardFifo">
-            <div class="algo-name" style="color:#60a5fa;">🔷 FIFO</div>
-            <div><span id="fifoFaultVal" class="fault-number">—</span> <span style="font-weight:bold;">faults</span></div>
-            <div><span id="fifoHitVal" class="hit-value">Hit Ratio: —</span></div>
-            <div id="fifoWinnerBadge" class="winner-tag" style="display:none;">🏆 BEST</div>
+            <div class="algo-icon">🔷</div>
+            <div class="algo-name fifo-color">FIFO</div>
+            <div><span id="fifoFaults" class="fault-value">—</span> <span style="color:#ff6b6b; font-weight:bold;">FAULTS</span></div>
+            <div><span id="fifoHit" class="hit-value">HIT: —</span></div>
+            <div><span id="fifoRate" class="rate-value">FAULT RATE: —</span></div>
+            <div id="fifoWinner" class="winner-star" style="display: none;">🏆 BEST ALGORITHM</div>
         </div>
         <div class="algo-card" id="cardLru">
-            <div class="algo-name" style="color:#a78bfa;">🟣 LRU</div>
-            <div><span id="lruFaultVal" class="fault-number">—</span> <span style="font-weight:bold;">faults</span></div>
-            <div><span id="lruHitVal" class="hit-value">Hit Ratio: —</span></div>
-            <div id="lruWinnerBadge" class="winner-tag" style="display:none;">🏆 BEST</div>
+            <div class="algo-icon">🟣</div>
+            <div class="algo-name lru-color">LRU</div>
+            <div><span id="lruFaults" class="fault-value">—</span> <span style="color:#ff6b6b; font-weight:bold;">FAULTS</span></div>
+            <div><span id="lruHit" class="hit-value">HIT: —</span></div>
+            <div><span id="lruRate" class="rate-value">FAULT RATE: —</span></div>
+            <div id="lruWinner" class="winner-star" style="display: none;">🏆 BEST ALGORITHM</div>
         </div>
         <div class="algo-card" id="cardOptimal">
-            <div class="algo-name" style="color:#34d399;">🟢 OPTIMAL</div>
-            <div><span id="optFaultVal" class="fault-number">—</span> <span style="font-weight:bold;">faults</span></div>
-            <div><span id="optHitVal" class="hit-value">Hit Ratio: —</span></div>
-            <div id="optWinnerBadge" class="winner-tag" style="display:none;">🏆 BEST</div>
+            <div class="algo-icon">🟢</div>
+            <div class="algo-name optimal-color">OPTIMAL</div>
+            <div><span id="optFaults" class="fault-value">—</span> <span style="color:#ff6b6b; font-weight:bold;">FAULTS</span></div>
+            <div><span id="optHit" class="hit-value">HIT: —</span></div>
+            <div><span id="optRate" class="rate-value">FAULT RATE: —</span></div>
+            <div id="optWinner" class="winner-star" style="display: none;">🏆 BEST ALGORITHM</div>
         </div>
     </div>
 
-    <!-- GRAPH -->
-    <div class="graph-area">
-        <div class="graph-panel">
-            <canvas id="cumulativeGraph" width="800" height="240"></canvas>
-            <div class="graph-legend">
-                <span style="color:#3b82f6;">● FIFO Faults</span> 
-                <span style="color:#a78bfa;">● LRU Faults</span> 
-                <span style="color:#34d399;">● OPTIMAL Faults</span>
-            </div>
-        </div>
-    </div>
-
+    <!-- Reference String Display -->
     <div class="ref-section">
-        <div class="ref-title">📌 REFERENCE SEQUENCE</div>
-        <div id="refListContainer" class="ref-badge-list"></div>
+        <div class="section-title">📌 REFERENCE SEQUENCE</div>
+        <div id="refContainer" class="ref-badge-container"></div>
     </div>
 
+    <!-- Timeline Matrix -->
     <div class="timeline-area">
         <div class="timeline-header">
-            <span class="timeline-title">📊 FRAME EVOLUTION — <span id="activeAlgoTitle">FIFO</span></span>
-            <span class="timeline-hint">💡 Click on algorithm card to see detailed steps</span>
+            <span class="timeline-title">📊 FRAME EVOLUTION — <span id="activeAlgo">FIFO</span></span>
+            <span class="timeline-hint">💡 Click on any algorithm card to view detailed steps</span>
         </div>
-        <div id="frameMatrixView" class="matrix-scroll">⚙️ Press RUN to start simulation</div>
+        <div id="matrixView" class="matrix-scroll">✨ Click "RUN SIMULATION" to start</div>
     </div>
 
+    <!-- Log Panel -->
     <div id="logPanel" class="log-container">
-        <div class="log-line">✅ Ready. Click "RUN & COMPARE" to get page faults, hit ratio and graph</div>
+        <div class="log-line">✅ Ready. Enter reference string and click RUN SIMULATION</div>
     </div>
 </div>
 
-<script src="script.js"></script>
+<script>
+    // DOM Elements
+    const refInput = document.getElementById('refInput');
+    const frameInput = document.getElementById('frameInput');
+    const runBtn = document.getElementById('runBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const refContainer = document.getElementById('refContainer');
+    const matrixView = document.getElementById('matrixView');
+    const logPanel = document.getElementById('logPanel');
+    const activeAlgoSpan = document.getElementById('activeAlgo');
+
+    // Stats Elements
+    const fifoFaultsSpan = document.getElementById('fifoFaults');
+    const lruFaultsSpan = document.getElementById('lruFaults');
+    const optFaultsSpan = document.getElementById('optFaults');
+    const fifoHitSpan = document.getElementById('fifoHit');
+    const lruHitSpan = document.getElementById('lruHit');
+    const optHitSpan = document.getElementById('optHit');
+    const fifoRateSpan = document.getElementById('fifoRate');
+    const lruRateSpan = document.getElementById('lruRate');
+    const optRateSpan = document.getElementById('optRate');
+    const fifoWinnerSpan = document.getElementById('fifoWinner');
+    const lruWinnerSpan = document.getElementById('lruWinner');
+    const optWinnerSpan = document.getElementById('optWinner');
+
+    // Store simulation data
+    let currentFifoSteps = [], currentLruSteps = [], currentOptSteps = [];
+    let currentRefArray = [], currentFrameCount = 3;
+
+    function parseRefString(str) {
+        let parts = str.split(/[\s,]+/);
+        let nums = [];
+        for (let p of parts) {
+            let n = parseInt(p);
+            if (!isNaN(n)) nums.push(n);
+        }
+        return nums;
+    }
+
+    // FIFO Algorithm
+    function simulateFIFO(refs, limit) {
+        let frames = [], queue = [], steps = [], faults = 0;
+        for (let i = 0; i < refs.length; i++) {
+            let page = refs[i];
+            let isFault = false, replaced = null, detail = "";
+            if (frames.includes(page)) {
+                detail = `HIT: Page ${page} already in memory`;
+            } else {
+                isFault = true;
+                faults++;
+                if (frames.length < limit) {
+                    frames.push(page);
+                    queue.push(page);
+                    detail = `FAULT → Load ${page} into free frame`;
+                } else {
+                    let victim = queue.shift();
+                    let idx = frames.indexOf(victim);
+                    if (idx !== -1) {
+                        replaced = victim;
+                        frames[idx] = page;
+                        queue.push(page);
+                        detail = `FAULT → Replace ${victim} with ${page} (FIFO)`;
+                    } else {
+                        frames[0] = page;
+                        queue.shift();
+                        queue.push(page);
+                        detail = `FAULT → Replace with ${page}`;
+                    }
+                }
+            }
+            steps.push({ page, framesSnapshot: [...frames], isFault, replacedPage: replaced, detail, cumFaults: faults });
+        }
+        let hitRatio = ((refs.length - faults) / refs.length * 100).toFixed(2);
+        let faultRate = (faults / refs.length * 100).toFixed(2);
+        return { steps, faults, hitRatio, faultRate };
+    }
+
+    // LRU Algorithm
+    function simulateLRU(refs, limit) {
+        let frames = [], recency = [], steps = [], faults = 0;
+        for (let i = 0; i < refs.length; i++) {
+            let page = refs[i];
+            let isFault = false, replaced = null, detail = "";
+            let hitIdx = frames.indexOf(page);
+            if (hitIdx !== -1) {
+                let pos = recency.indexOf(page);
+                if (pos !== -1) recency.splice(pos, 1);
+                recency.push(page);
+                detail = `HIT: ${page} → moved to most recent`;
+            } else {
+                isFault = true;
+                faults++;
+                if (frames.length < limit) {
+                    frames.push(page);
+                    recency.push(page);
+                    detail = `FAULT → Load ${page} into free frame`;
+                } else {
+                    let lruPage = recency.shift();
+                    let idx = frames.indexOf(lruPage);
+                    if (idx !== -1) {
+                        replaced = lruPage;
+                        frames[idx] = page;
+                        recency.push(page);
+                        detail = `FAULT → Evict LRU ${lruPage} → load ${page}`;
+                    } else {
+                        replaced = frames[0];
+                        frames[0] = page;
+                        recency.shift();
+                        recency.push(page);
+                        detail = `FAULT → Replace with ${page}`;
+                    }
+                }
+            }
+            steps.push({ page, framesSnapshot: [...frames], isFault, replacedPage: replaced, detail, cumFaults: faults });
+        }
+        let hitRatio = ((refs.length - faults) / refs.length * 100).toFixed(2);
+        let faultRate = (faults / refs.length * 100).toFixed(2);
+        return { steps, faults, hitRatio, faultRate };
+    }
+
+    // OPTIMAL Algorithm
+    function simulateOptimal(refs, limit) {
+        let frames = [], steps = [], faults = 0;
+        for (let i = 0; i < refs.length; i++) {
+            let page = refs[i];
+            let isFault = false, replaced = null, detail = "";
+            if (frames.includes(page)) {
+                detail = `HIT: Page ${page} already in memory`;
+            } else {
+                isFault = true;
+                faults++;
+                if (frames.length < limit) {
+                    frames.push(page);
+                    detail = `FAULT → Load ${page} into free frame`;
+                } else {
+                    let farthestIdx = -1, victim = null;
+                    for (let f of frames) {
+                        let nextUse = Infinity;
+                        for (let j = i + 1; j < refs.length; j++) {
+                            if (refs[j] === f) {
+                                nextUse = j;
+                                break;
+                            }
+                        }
+                        if (nextUse > farthestIdx) {
+                            farthestIdx = nextUse;
+                            victim = f;
+                        }
+                    }
+                    let idx = frames.indexOf(victim);
+                    replaced = victim;
+                    frames[idx] = page;
+                    let futureMsg = farthestIdx === Infinity ? "NEVER" : `at step ${farthestIdx + 1}`;
+                    detail = `FAULT → OPTIMAL: evict ${victim} (used ${futureMsg}) → load ${page}`;
+                }
+            }
+            steps.push({ page, framesSnapshot: [...frames], isFault, replacedPage: replaced, detail, cumFaults: faults });
+        }
+        let hitRatio = ((refs.length - faults) / refs.length * 100).toFixed(2);
+        let faultRate = (faults / refs.length * 100).toFixed(2);
+        return { steps, faults, hitRatio, faultRate };
+    }
+
+    // Update Cards with bright visible stats
+    function updateCards(fifoRes, lruRes, optRes) {
+        // Update Faults (Large Red/Orange)
+        fifoFaultsSpan.innerHTML = fifoRes.faults;
+        lruFaultsSpan.innerHTML = lruRes.faults;
+        optFaultsSpan.innerHTML = optRes.faults;
+        
+        // Update Hit Ratio (Bright Green)
+        fifoHitSpan.innerHTML = `HIT: ${fifoRes.hitRatio}%`;
+        lruHitSpan.innerHTML = `HIT: ${lruRes.hitRatio}%`;
+        optHitSpan.innerHTML = `HIT: ${optRes.hitRatio}%`;
+        
+        // Update Fault Rate (Bright Orange)
+        fifoRateSpan.innerHTML = `FAULT RATE: ${fifoRes.faultRate}%`;
+        lruRateSpan.innerHTML = `FAULT RATE: ${lruRes.faultRate}%`;
+        optRateSpan.innerHTML = `FAULT RATE: ${optRes.faultRate}%`;
+
+        // Winner detection
+        let minFaults = Math.min(fifoRes.faults, lruRes.faults, optRes.faults);
+        fifoWinnerSpan.style.display = fifoRes.faults === minFaults ? "inline-block" : "none";
+        lruWinnerSpan.style.display = lruRes.faults === minFaults ? "inline-block" : "none";
+        optWinnerSpan.style.display = optRes.faults === minFaults ? "inline-block" : "none";
+    }
+
+    // Render Timeline
+    function renderTimeline(steps, frameCount) {
+        if (!steps || steps.length === 0) {
+            matrixView.innerHTML = "<div style='padding:1rem; text-align:center'>No simulation data</div>";
+            return;
+        }
+
+        let html = `<div style="overflow-x:auto;">`;
+        html += `<div class="step-header">`;
+        html += `<div class="step-cell" style="background:transparent"></div>`;
+        for (let i = 0; i < steps.length; i++) {
+            let s = steps[i];
+            let badge = s.isFault ? `<span class="status-badge status-fault">⚠️ FAULT</span>` : `<span class="status-badge status-hit">✓ HIT</span>`;
+            html += `<div class="step-cell">
+                        <div class="step-num">Step ${i + 1}</div>
+                        <div class="step-page">${s.page}</div>
+                        ${badge}
+                    </div>`;
+        }
+        html += `</div>`;
+
+        for (let row = 0; row < frameCount; row++) {
+            html += `<div class="frame-row">`;
+            html += `<div class="frame-label">Frame ${row + 1}</div>`;
+            for (let col = 0; col < steps.length; col++) {
+                let snap = steps[col].framesSnapshot;
+                let val = (row < snap.length) ? snap[row] : "—";
+                let extraClass = "";
+                let step = steps[col];
+                if (step.isFault && val === step.page && snap.includes(step.page) && row === snap.indexOf(step.page)) {
+                    extraClass = step.replacedPage !== null ? "fault-replace" : "fault-new";
+                }
+                html += `<div class="frame-cell ${extraClass}">${val === "—" ? "∅" : val}</div>`;
+            }
+            html += `</div>`;
+        }
+        html += `<div style="font-size:0.7rem; margin-top:12px; text-align:center; color:#94a3b8;">
+                    🟢 Bright Green = New Page Load &nbsp;&nbsp; 🟠 Bright Orange = Page Replacement
+                </div>`;
+        html += `</div>`;
+        matrixView.innerHTML = html;
+    }
+
+    function renderLogs(steps, algoName) {
+        let logs = "";
+        for (let s of steps) {
+            logs += `<div class="log-line"><strong>[${algoName}] Step ${s.stepIdx + 1}</strong> | Page ${s.page} → ${s.isFault ? '❌ FAULT' : '✅ HIT'} → ${s.detail} | Frames: [${s.framesSnapshot.join(", ")}]</div>`;
+        }
+        logPanel.innerHTML = logs || `<div class="log-line">No logs available</div>`;
+    }
+
+    function runSimulation() {
+        let rawRef = refInput.value.trim();
+        if (!rawRef) { alert("Please enter a reference string"); return; }
+        let refArray = parseRefString(rawRef);
+        if (refArray.length === 0) { alert("Invalid reference string. Use numbers separated by commas or spaces."); return; }
+        let frameLimit = parseInt(frameInput.value);
+        if (isNaN(frameLimit)) frameLimit = 3;
+        frameLimit = Math.min(8, Math.max(3, frameLimit));
+        frameInput.value = frameLimit;
+
+        currentRefArray = refArray;
+        currentFrameCount = frameLimit;
+
+        let fifo = simulateFIFO(refArray, frameLimit);
+        let lru = simulateLRU(refArray, frameLimit);
+        let opt = simulateOptimal(refArray, frameLimit);
+
+        fifo.steps = fifo.steps.map((s, idx) => ({ ...s, stepIdx: idx }));
+        lru.steps = lru.steps.map((s, idx) => ({ ...s, stepIdx: idx }));
+        opt.steps = opt.steps.map((s, idx) => ({ ...s, stepIdx: idx }));
+
+        currentFifoSteps = fifo.steps;
+        currentLruSteps = lru.steps;
+        currentOptSteps = opt.steps;
+
+        updateCards(
+            { faults: fifo.faults, hitRatio: fifo.hitRatio, faultRate: fifo.faultRate },
+            { faults: lru.faults, hitRatio: lru.hitRatio, faultRate: lru.faultRate },
+            { faults: opt.faults, hitRatio: opt.hitRatio, faultRate: opt.faultRate }
+        );
+
+        refContainer.innerHTML = refArray.map(p => `<div class="ref-badge">${p}</div>`).join('');
+
+        activeAlgoSpan.innerText = "FIFO";
+        renderTimeline(currentFifoSteps, frameLimit);
+        renderLogs(currentFifoSteps, "FIFO");
+    }
+
+    function switchToAlgorithm(algo) {
+        if (algo === 'fifo' && currentFifoSteps.length) {
+            activeAlgoSpan.innerText = "FIFO";
+            renderTimeline(currentFifoSteps, currentFrameCount);
+            renderLogs(currentFifoSteps, "FIFO");
+        } else if (algo === 'lru' && currentLruSteps.length) {
+            activeAlgoSpan.innerText = "LRU";
+            renderTimeline(currentLruSteps, currentFrameCount);
+            renderLogs(currentLruSteps, "LRU");
+        } else if (algo === 'optimal' && currentOptSteps.length) {
+            activeAlgoSpan.innerText = "OPTIMAL";
+            renderTimeline(currentOptSteps, currentFrameCount);
+            renderLogs(currentOptSteps, "OPTIMAL");
+        }
+    }
+
+    function resetToDefault() {
+        refInput.value = "7,0,1,2,0,3,0,4,2,3,0,3,2,1,2,0,1,7,0,1";
+        frameInput.value = "3";
+        runSimulation();
+    }
+
+    runBtn.addEventListener('click', runSimulation);
+    resetBtn.addEventListener('click', resetToDefault);
+    document.getElementById('cardFifo').addEventListener('click', () => switchToAlgorithm('fifo'));
+    document.getElementById('cardLru').addEventListener('click', () => switchToAlgorithm('lru'));
+    document.getElementById('cardOptimal').addEventListener('click', () => switchToAlgorithm('optimal'));
+
+    resetToDefault();
+</script>
 </body>
 </html>
